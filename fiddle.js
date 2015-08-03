@@ -229,7 +229,7 @@ function testb(){
 
 }
 
-(new testb()).test1();
+//(new testb()).test1();
 
   // Send messages
   //conn.send('Hello!');
