@@ -20,7 +20,7 @@ warning!!! software in early stage
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/NikolaMandic/Buyan?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)               demo here: http://nikolamandic.github.io/Buyan/        
             
 # background
-project started after comments censored my tweet regarding Nazi( Stepinac) that is celebrated as a saint by latin heretic cartel in which I reflected on reports of his hands being red from orthodox blood that he literally killed with a knife with his own two hands. Blog post introducing motivation behind Buyan http://blog.nikola.link/#buyan
+project started after comments censored my tweet regarding Nazi( Stepinac) that is celebrated as a saint by latin heretic cartel in which I reflected on reports of his hands being red from orthodox blood that he literally killed with a knife with his own two hands. Blog post introducing motivation behind Buyan http://nikolamandic.me/?p=69
 so just like there was Armenian genocide there was genocide in balkans
 in wwII against Jews,Roma and Serbs organized by organization people
 refer to as "Catholic church".
