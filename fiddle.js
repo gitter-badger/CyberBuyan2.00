@@ -8,6 +8,9 @@ dependencies are peerJS and https://github.com/NikolaMandic/interfacex for expos
 
 //this is network module it supports multiple networks of peers
 function net(peers,id){
+  function encode(header,m){
+    return {header:header,message:m};
+  }
   this.members=peers;
   var self=this;
   this.networks={"main":[]};
@@ -42,11 +45,23 @@ function net(peers,id){
   }
   //you can send to array of peers(array of peerJS connection objects) a message
   this.sendto=function(whatnet,message){
-    
-    for (index = 0; index < whatnet.length; ++index) {
-      console.log(whatnet[index].getIP()+" -> "+message);
-      whatnet[index].send(message);
-    }  
+    if(whatnet["length"]){
+      for (index = 0; index < whatnet.length; ++index) {
+        console.log(whatnet[index].getIP()+" -> "+message);
+        var to_send;
+        if(message.ttl){
+          message.ttl-=1;
+          to_send=message;
+        }
+        else
+        {
+          to_send={ttl:15,message:message};
+        }
+        whatnet[index].send({ttl:15,message:message});
+      }  
+    }else{
+      whatnet.send({ttl:15,message:message});
+    }
   }
   //you can send message to a network upstream or downstream depending on dht routing function
   /*
@@ -56,20 +71,41 @@ function net(peers,id){
     console.log("network " + whatnet + " is being sent "+message+ " "+ direction);
     if(direction=="all"){
       self.broadcast(whatnet,message);
-    }
-    if(direction=="upstream"){
+    }else if(direction=="upstream"){
     
       self.sendto(i("dht"+id+".findUpstreamPeers")(whatnet),message);
-    }
-    if(direction=="downstream"){
+    }else if(direction=="downstream"){
 
       self.sendto(i("dht"+id+".findDownstreamPeers")(whatnet),message);
+    }else{
+      self.sendto(i("dht"+id+".nextHopToPeer")(direction),encode({src:id,dst:direction},message));
     }
   }
-  //react when this network sends something and you see what is sent and who sent it
-  this.onMessage=function(message,peer){
-    
+  //if message should be routed pass it down the network
+  this.route=function(message){
+    self.sends("main",message.header.dst,message.message);
   }
+  //if it's for us do stuff
+  this.process=function(peer,message){
+     $(document).trigger("cyber_verbose",{source:peer,message:message});
+     $(document).trigger("cyber",message);
+  }
+  //react when this network sends something and you see what is sent and who sent it
+  this.onMessage=function(peer,message){
+    if(message.ttl>1){
+      message.ttl-=1;
+      if(message.header.dst!=id){
+        self.route(message);
+      }else{
+        self.process(peer,message);
+      }
+     console.log("id %s received message %s",id,JSON.stringify(message));
+    }
+  }
+}
+
+function messagePipeline(id){
+
 }
 
 /*
@@ -85,6 +121,19 @@ function dht(id){
    //is peer left or right
    this.compareAddresses=function(p1,p2){
      return self.getPeerAddress(p1)>self.getPeerAddress(p2);
+   }
+   //hash space distance between adresses
+   //it is string difference
+   //if string is one big number substract the values
+   this.compareAddressesDiff=function(p1,p2){
+     return _.chain(p1)
+             .map(function(v){ return v.charCodeAt(0);})
+             .zip(_.chain(p2)
+                   .map(function(v){ return v.charCodeAt(0);})
+                   .value())
+             .map(function(v,i,a){return ((v[1]?v[1]:0)-(v[0]?v[0]:0))*Math.pow(10,a.length-1-i);})
+             .reduce(function(a,b){return a+b;})
+             .value();
    }
    //find all peers that are right
    this.findUpstreamPeers=function(networkname,p){
@@ -107,6 +156,23 @@ function dht(id){
      
     }
     return downstream;
+   }
+   //minimize distance function to find the peer closest to the destination peer
+   this.nextHopToPeer = function(p){
+     var network=i("network"+id+".networks")().main;
+     var peer = p || i("myidentities"+id+".identities")()[id];
+     var distance=self.compareAddressesDiff(network[0].peer,peer);
+     min=distance;
+     var mini=0;
+     for (index = 1; index < network.length; ++index) {
+       distance=self.compareAddressesDiff(network[index].peer,peer);
+       if(min>distance){
+         min=distance;
+         mini=index;
+       }
+     }
+     return network[mini];
+
    }
    //find all peers that are left
    this.findDownstreamPeers=function(networkname,p){
@@ -154,7 +220,7 @@ function pirJS(id){
    var self=this;
    this.init=function(){
     var connParams = {
-     "host": "buyan-nikolamandic.rhcloud.com",
+     "host": "localhost",
      "port": 8000, 
      "key": "prokletdajepapa"
      };
@@ -196,40 +262,62 @@ function pirJS(id){
 //tests 
 function testb(){
     var d=Date.now();
-    var T =new pirJS("Taras"+d);
-    var M =new pirJS("Misa"+d);
-    var D =new pirJS("Dule"+d);
-    var C1 =new pirJS("Cigan1"+d);
-    var C2 =new pirJS("Cigan2"+d);
-    var ME =new pirJS("Metalika"+d);
-    var G1 =new pirJS("Grobar1"+d);
-    var G2 =new pirJS("Grobar2"+d);
-    var G3 =new pirJS("Grobar3"+d);
-    var G4 =new pirJS("Grobar4"+d);
-    var G5 =new pirJS("Grobar5"+d);
-    T.init();
-    M.init();
-    D.init();
-    C1.init();
-    C2.init();
-    ME.init();
-    G1.init();
-    G2.init();
-    G3.init();
-    G4.init();
-    G5.init();
+    var p01 =new pirJS("01_"+d);
+    var p02 =new pirJS("02_"+d);
+    var p03 =new pirJS("03_"+d);
+    var p04 =new pirJS("04_"+d);
+    var p05 =new pirJS("05_"+d);
+    var p06 =new pirJS("06_"+d);
+    var p07 =new pirJS("07_"+d);
+    var p08 =new pirJS("08_"+d);
+    var p09 =new pirJS("09_"+d);
+    var p10 =new pirJS("10_"+d);
+    var p11 =new pirJS("11_"+d);
+    p01.init();
+    p02.init();
+    p03.init();
+    p04.init();
+    p05.init();
+    p06.init();
+    p07.init();
+    p08.init();
+    p09.init();
+    p10.init();
+    p11.init();
   this.test1=function(){
+    console.log("dht test sending to peer that is upstream");
+    
+    p01.connect("01_"+d);
+    p01.connect("02_"+d);
+    p01.connect("03_"+d);
+    p01.connect("04_"+d);
+    p01.connect("05_"+d);
 
-
-    T.connect("Misa"+d);
+    p04.connect("07_"+d);
     setTimeout(function(){
-    T.sends("main","upstream","karaj cigane!!!");
-     },30000);
+      console.log("sending");
+     p01.sends("main","07_"+d,"karaj cigane!!!");
+    },10000);
+    
+    console.log("//////dht test sending to peer that is upstream end/////////");
+  }
+
+  this.test2=function(){
+    console.log("dht test sending to peer that is downstream");
+    
+    T.connect("Misa"+d);
+    T.connect("Metalika"+d);
+    setTimeout(function(){
+      console.log("sending");
+     T.sends("main","upstream","karaj cigane!!!");
+    },30000);
+    
+    console.log("//////dht test sending to peer that is downstream end/////////");
   }
 
 }
 
-//(new testb()).test1();
+(new testb()).test1();
 
   // Send messages
   //conn.send('Hello!');

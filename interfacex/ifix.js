@@ -1,6 +1,6 @@
 function i(namespace,iface){
  var self=i;
- debugger;
+ 
  function isFunction(functionToCheck) {
    var getType = {};
    return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
@@ -29,7 +29,7 @@ function i(namespace,iface){
  if( typeof iface !== "undefined"){
    init(iface);
  }else{
-   return self.__proto__.ifaces[namespace]();
+   return self.__proto__.ifaces[namespace];
  }
 
 };
