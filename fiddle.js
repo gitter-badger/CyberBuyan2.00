@@ -48,19 +48,10 @@ function net(peers,id){
     if(whatnet["length"]){
       for (index = 0; index < whatnet.length; ++index) {
         console.log(whatnet[index].getIP()+" -> "+message);
-        var to_send;
-        if(message.ttl){
-          message.ttl-=1;
-          to_send=message;
-        }
-        else
-        {
-          to_send={ttl:15,message:message};
-        }
-        whatnet[index].send({ttl:15,message:message});
+        whatnet[index].send(message);
       }  
     }else{
-      whatnet.send({ttl:15,message:message});
+      whatnet.send(message);
     }
   }
   //you can send message to a network upstream or downstream depending on dht routing function
@@ -78,12 +69,14 @@ function net(peers,id){
 
       self.sendto(i("dht"+id+".findDownstreamPeers")(whatnet),message);
     }else{
-      self.sendto(i("dht"+id+".nextHopToPeer")(direction),encode({src:id,dst:direction},message));
+      self.sendto(i("dht"+id+".nextHopToPeer")(direction),encode({src:id,dst:direction,ttl:15},message));
     }
   }
   //if message should be routed pass it down the network
   this.route=function(message){
-    self.sends("main",message.header.dst,message.message);
+    self.sendto(i("dht"+id+".nextHopToPeer")(message.header.dst),message);
+    
+    //self.sends("main",message.message.header.dst,message);
   }
   //if it's for us do stuff
   this.process=function(peer,message){
@@ -92,8 +85,8 @@ function net(peers,id){
   }
   //react when this network sends something and you see what is sent and who sent it
   this.onMessage=function(peer,message){
-    if(message.ttl>1){
-      message.ttl-=1;
+    if(message.header.ttl>1){
+      message.header.ttl-=1;
       if(message.header.dst!=id){
         self.route(message);
       }else{
@@ -120,7 +113,7 @@ function dht(id){
    }
    //is peer left or right
    this.compareAddresses=function(p1,p2){
-     return self.getPeerAddress(p1)>self.getPeerAddress(p2);
+     return self.compareAddressesDiff(p1,p2)>0;
    }
    //hash space distance between adresses
    //it is string difference
@@ -135,6 +128,7 @@ function dht(id){
              .reduce(function(a,b){return a+b;})
              .value();
    }
+   
    //find all peers that are right
    this.findUpstreamPeers=function(networkname,p){
     var downstream=[];
