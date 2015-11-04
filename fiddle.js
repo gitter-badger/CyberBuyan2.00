@@ -45,12 +45,13 @@ function net(peers,id){
   }
   //you can send to array of peers(array of peerJS connection objects) a message
   this.sendto=function(whatnet,message){
-    if(whatnet["length"]){
+    
+    if(whatnet["length"]>0){
       for (index = 0; index < whatnet.length; ++index) {
         console.log(whatnet[index].getIP()+" -> "+message);
         whatnet[index].send(message);
       }  
-    }else{
+    }else if (whatnet["length"]==undefined){
       whatnet.send(message);
     }
   }
@@ -64,18 +65,28 @@ function net(peers,id){
       self.broadcast(whatnet,message);
     }else if(direction=="upstream"){
     
-      self.sendto(i("dht"+id+".findUpstreamPeers")(whatnet),message);
+      self.sendto(i("dht"+id+".findUpstreamPeers")(whatnet),encode({src:id,dst:direction,ttl:15},message));
     }else if(direction=="downstream"){
 
-      self.sendto(i("dht"+id+".findDownstreamPeers")(whatnet),message);
+      self.sendto(i("dht"+id+".findDownstreamPeers")(whatnet),encode({src:id,dst:direction,ttl:15},message));
     }else{
-      self.sendto(i("dht"+id+".nextHopToPeer")(direction),encode({src:id,dst:direction,ttl:15},message));
+      if(i("dht"+id+".compareAddresses")(id,direction)){
+        self.sendto(i("dht"+id+".findUpstreamPeers")("main"),encode({src:id,dst:direction,ttl:15},message));
+      }else{
+        self.sendto(i("dht"+id+".findDownstreamPeers")("main"),encode({src:id,dst:direction,ttl:15},message));
+      }
+      //self.sendto(i("dht"+id+".nextHopToPeer")(direction),encode({src:id,dst:direction,ttl:15},message));
     }
   }
   //if message should be routed pass it down the network
   this.route=function(message){
     self.sendto(i("dht"+id+".nextHopToPeer")(message.header.dst),message);
-    
+    if(i("dht"+id+".compareAddresses")(message.header.dst,id)){
+      self.sendto(i("dht"+id+".findUpstreamPeers")("main"),message);
+    }else{
+      self.sendto(i("dht"+id+".findDownstreamPeers")("main"),message);
+    }
+    //self.sendto(i("dht"+id+".findUpstreamPeers")(whatnet),message);
     //self.sends("main",message.message.header.dst,message);
   }
   //if it's for us do stuff
@@ -122,7 +133,8 @@ function dht(id){
      return _.chain(p1)
              .map(function(v){ return v.charCodeAt(0);})
              .zip(_.chain(p2)
-                   .map(function(v){ return v.charCodeAt(0);})
+                   .map(function(v){ 
+                   return v.charCodeAt(0);})
                    .value())
              .map(function(v,i,a){return ((v[1]?v[1]:0)-(v[0]?v[0]:0))*Math.pow(10,a.length-1-i);})
              .reduce(function(a,b){return a+b;})
@@ -137,11 +149,11 @@ function dht(id){
     var peer = p || i("myidentities"+id+".identities")()[id];
     
     for (index = 0; index < network.length; ++index) {
-      if(!self.compareAddresses(network[index],peer)){
+      if(!self.compareAddresses(network[index].peer,peer.peer)){
         downstream.push(network[index]);
       }
     }
-    console.log("on " +self.id+ " upstream from "+ self.getPeerAddress(peer) + " are ");
+    //console.log("on " +self.id+ " upstream from "+ self.getPeerAddress(peer) + " are ");
     console.log(downstream);
     
     for (index = 0; index < downstream.length; ++index) {
@@ -176,7 +188,7 @@ function dht(id){
     var peer = p || i("myidentities"+id+".identities")()[id];
    
     for (index = 0; index < network.length; ++index) {
-      if(self.compareAddresses(network[index],peer)){
+      if(self.compareAddresses(network[index].peer,peer.peer)){
         downstream.push(network[index]);
       }
     }
@@ -312,6 +324,7 @@ function testb(){
 }
 
 (new testb()).test1();
+
 
   // Send messages
   //conn.send('Hello!');
