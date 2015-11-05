@@ -5,6 +5,47 @@ to test it out go to http://nikolamandic.github.io/Buyan/ open devtools and c/p 
 dependencies are peerJS and https://github.com/NikolaMandic/interfacex for exposing modules to everywhere over event loop(imagine using this chunk of code from ui available globally under this libarary)
 
 */
+function peerExchange(id){
+
+  var self=this;
+  this.requestPeers=function(message){
+    console.log(id);
+    i("network"+id+".sendto")(i("network"+id+".networks")().main,
+                              {subsystem:"peerExchangeSubsystemMessage",type:"requestPeers"});
+  }
+  this.sendPeers=function(message){
+    i("network"+id+".sendto")(i("network"+id+".networks")().main,
+                              {subsystem:"peerExchangeSubsystemMessage",type:"requestPeers"});
+    debugger;
+  }  
+  this.receivePeers=function(message){
+    
+    debugger;
+  }
+
+  this.handleCyber=function(message){
+    debugger;
+    if(message.message.subsystem==="peerExchangeSubsystemMessage"){
+      switch (message.message.type) {
+        case "requestPeers":
+            self.sendPeers(message);
+          break;
+        case "peersList":
+            self.receivePeers(message);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  setTimeout(function(){
+    self.requestPeers();
+  },10000);
+}
+
+$(document).on("cyber_under_the_hood",function(message){
+    i("peerExchange"+id+".handleCyber")(message);
+});
 
 //this is network module it supports multiple networks of peers
 function net(peers,id){
@@ -45,14 +86,13 @@ function net(peers,id){
   }
   //you can send to array of peers(array of peerJS connection objects) a message
   this.sendto=function(whatnet,message){
-    
     if(whatnet["length"]>0){
       for (index = 0; index < whatnet.length; ++index) {
         console.log(whatnet[index].getIP()+" -> "+message);
-        whatnet[index].send(message);
-      }  
+        whatnet[index].send(encode({src:id,dst:whatnet[index].peer,ttl:15},message));
+      }
     }else if (whatnet["length"]==undefined){
-      whatnet.send(message);
+      whatnet.send(encode({src:id,dst:whatnet.peer,ttl:15},message));
     }
   }
   //you can send message to a network upstream or downstream depending on dht routing function
@@ -64,16 +104,14 @@ function net(peers,id){
     if(direction=="all"){
       self.broadcast(whatnet,message);
     }else if(direction=="upstream"){
-    
-      self.sendto(i("dht"+id+".findUpstreamPeers")(whatnet),encode({src:id,dst:direction,ttl:15},message));
+      self.sendto(i("dht"+id+".findUpstreamPeers")(whatnet),message);
     }else if(direction=="downstream"){
-
-      self.sendto(i("dht"+id+".findDownstreamPeers")(whatnet),encode({src:id,dst:direction,ttl:15},message));
+      self.sendto(i("dht"+id+".findDownstreamPeers")(whatnet),message);
     }else{
       if(i("dht"+id+".compareAddresses")(id,direction)){
-        self.sendto(i("dht"+id+".findUpstreamPeers")("main"),encode({src:id,dst:direction,ttl:15},message));
+        self.sendto(i("dht"+id+".findUpstreamPeers")("main"),message);
       }else{
-        self.sendto(i("dht"+id+".findDownstreamPeers")("main"),encode({src:id,dst:direction,ttl:15},message));
+        self.sendto(i("dht"+id+".findDownstreamPeers")("main"),message);
       }
       //self.sendto(i("dht"+id+".nextHopToPeer")(direction),encode({src:id,dst:direction,ttl:15},message));
     }
@@ -91,8 +129,14 @@ function net(peers,id){
   }
   //if it's for us do stuff
   this.process=function(peer,message){
+     
+     
      $(document).trigger("cyber_verbose",{source:peer,message:message});
+     if(message.header.subsystem){
+       $(document).trigger("cyber_under_the_hood",message);
+     }
      $(document).trigger("cyber",message);
+     
   }
   //react when this network sends something and you see what is sent and who sent it
   this.onMessage=function(peer,message){
@@ -250,6 +294,7 @@ function pirJS(id){
      i(networkid,new net([],id)); 
      //expose dht over interfacex
      i("dht"+id,new dht(id));
+     i("peerExchange",new peerExchange(id)); 
      i("myidentities"+id,new identityBase(id,peer));
      
   }
@@ -302,7 +347,7 @@ function testb(){
     p04.connect("07_"+d);
     setTimeout(function(){
       console.log("sending");
-     p01.sends("main","07_"+d,"karaj cigane!!!");
+     //p01.sends("main","07_"+d,"karaj cigane!!!");
     },10000);
     
     console.log("//////dht test sending to peer that is upstream end/////////");
@@ -315,7 +360,7 @@ function testb(){
     T.connect("Metalika"+d);
     setTimeout(function(){
       console.log("sending");
-     T.sends("main","upstream","karaj cigane!!!");
+     //T.sends("main","upstream","karaj cigane!!!");
     },30000);
     
     console.log("//////dht test sending to peer that is downstream end/////////");
