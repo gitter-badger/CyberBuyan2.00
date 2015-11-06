@@ -6,10 +6,33 @@ dependencies are peerJS and https://github.com/NikolaMandic/interfacex for expos
 
 */
 
+
+//this is small wrapper around webrtc
+/*
+
+  usage:
+   Tsar Saltan:
+   //instantiate wrapper
+   konnection=new K();
+   //make offer for the other end of connection
+   konnection.makeOffer().then(function(offer){sendOfferToTsaritsa});
+   Tsaritsa:
+   konnection=new K();
+   konnection.handlePeer(offer).then(function(answer){
+     sendAnswerToTsarSaltan;
+   });
+   Tsar Saltan:
+   konnection.handlePeer(answer)
+
+   //now connection is open no central server
+  
+
+*/
 function K(){
   var self=this;
   var cfg = {"iceServers":[{"url":"stun:23.21.150.121"}]},
       con = { 'optional': [{'DtlsSrtpKeyAgreement': true}] };
+      /*
   var icePromise = new Promise(function(resolve,reject){
     debugger;
     $(document).on("iceCandidate",function(x){
@@ -22,6 +45,7 @@ function K(){
     });
 
   });
+  */
   self.dataChannelSetup=function(dc1){
     self.dc1=dc1;
     self.dc1.onopen = function (e) {
@@ -84,7 +108,18 @@ function K(){
     self.pc1.setLocalDescription(desc, function () {});
       console.log("created local offer", desc);
     }, function () {console.warn("Couldn't create offer");});
-    return icePromise;
+    return  new Promise(function(resolve,reject){
+    debugger;
+    $(document).on("iceCandidate",function(x){
+      if(x){
+        resolve(JSON.stringify(self.pc1.localDescription));
+      }else
+      {
+        reject(new Error("no kandidat"));
+      }
+    });
+
+    });
   }
   self.onCandidate=function (e) {
       console.log("ICE candidate (pc1)", e);
@@ -92,6 +127,7 @@ function K(){
       if (e.candidate == null) {
           //$?$(document).trigger("icedesc",JSON.stringify(self.pc1.localDescription)):1;
           console.log("local offer ",JSON.stringify(self.pc1.localDescription));
+
         //  icePromise.resolve(self.pc1.localDescription);
       }else{
       //    icePromise.reject(new Error("no kandidat"));
@@ -106,12 +142,24 @@ function K(){
     console.log("parsed",parsed);
     if(parsed.type==="offer"){
       self.answerFromOffer(parsed);
+      var pr= new Promise(function(resolve,reject){
+        debugger;
+        $(document).on("iceCandidate",function(x){
+          if(x){
+            resolve(JSON.stringify(self.pc1.localDescription));
+          }else
+          {
+            reject(new Error("no kandidat"));
+          }
+        });
+
+      });
     }else if(parsed.type==="answer"){
       self.onAnswerFromPeer(parsed);
     }else{
       console.log("peer sent invalid request");
     }
-    return icePromise;
+    return pr;
   }
   self.onAnswerFromPeer=function(answer){
     var answerDesc=
@@ -149,11 +197,34 @@ function K(){
 function peerExchange(id){
 
   var self=this;
+  //someboy requested my webrtc offer I am gonna send it to them
+  this.requestPeer=function(message){
+    console.log("%s requested peers");
+    i("network"+id+".sendto")(i("network"+id+".networks")().main,
+                              {subsystem:"peerExchangeSubsystemMessage",type:"requestPeer"});
+  }
+  //I am gonna send my webrtc offer
+  this.sendPeer=function(message){
+    console.log("%s sent out his peers   %s",id,[1,2]);
+    (new K()).makeOffer().then(function(offer){
+    i("network"+id+".sendto")(i("network"+id+".networks")().main,
+                              {subsystem:"peerExchangeSubsystemMessage",type:"peerList",data:offer});
+    });
+    debugger;
+  }  
+  //recieved offer from somebody and now I am gonna handle it
+  this.receivePeer=function(message){
+    console.log("%s received peers %s",id,message);
+    i("network"+id+".networks")().offers.push(message.message.data);
+    debugger;
+  }
+  //make request so that somebody sends us bunch of offers 
   this.requestPeers=function(message){
     console.log("%s requested peers");
     i("network"+id+".sendto")(i("network"+id+".networks")().main,
                               {subsystem:"peerExchangeSubsystemMessage",type:"requestPeers"});
   }
+  //send bunch of offers we have to somebody
   this.sendPeers=function(message){
 
     console.log("%s sent out his peers   %s",id,[1,2]);
@@ -161,12 +232,13 @@ function peerExchange(id){
                               {subsystem:"peerExchangeSubsystemMessage",type:"peerList",data:[1,2]});
     debugger;
   }  
+  //handle bunch of offers we got
   this.receivePeers=function(message){
     console.log("%s received peers %s",id,message);
-    i("network"+id+".networks")().main.push(message.message.data);
+    i("network"+id+".networks")().offers.push(message.message.data);
     debugger;
   }
-
+  //all messages  recieved go trough here sort them out 
   this.handleCyber=function(message){
     console.log("%s peerexchange sybsystem recieved %s",id ,JSON.stringify(message));
     debugger;
