@@ -5,25 +5,170 @@ to test it out go to http://nikolamandic.github.io/Buyan/ open devtools and c/p 
 dependencies are peerJS and https://github.com/NikolaMandic/interfacex for exposing modules to everywhere over event loop(imagine using this chunk of code from ui available globally under this libarary)
 
 */
+
+function K(){
+  var self=this;
+  var cfg = {"iceServers":[{"url":"stun:23.21.150.121"}]},
+      con = { 'optional': [{'DtlsSrtpKeyAgreement': true}] };
+  var icePromise = new Promise(function(resolve,reject){
+    debugger;
+    $(document).on("iceCandidate",function(x){
+      if(x){
+        resolve(JSON.stringify(self.pc1.localDescription));
+      }else
+      {
+        reject(new Error("no kandidat"));
+      }
+    });
+
+  });
+  self.dataChannelSetup=function(dc1){
+    self.dc1=dc1;
+    self.dc1.onopen = function (e) {
+        console.log('data channel connect');
+    }
+    self.dc1.onmessage = function (e) {
+      if (e.data.size) {
+        self.onMessage(e.data);
+      }
+      else {
+          if (e.data.charCodeAt(0) == 2) {
+             // The first message we get from Firefox (but not Chrome)
+             // is literal ASCII 2 and I don't understand why -- if we
+             // leave it in, JSON.parse() will barf.
+             return;
+          }
+          console.log(e);
+          var data = JSON.parse(e.data);
+          self.onMessage(e.data);
+      }
+    };
+  }
+  self.makeDataChannel=function(){
+    self.dc1 = self.pc1.createDataChannel('test', {reliable:true});
+    self.dataChannelSetup(self.dc1);
+  }
+  self.newConnection=function newConnection(){
+    self.pc1 = new RTCPeerConnection(cfg, con);
+    self.pc1.onicecandidate = self.onCandidate;
+    self.pc1.onconnection = self.onOpen;
+    function onsignalingstatechange(state) {
+      console.info('signaling state change:', state);
+    }
+
+    function oniceconnectionstatechange(state) {
+        console.info('ice connection state change:', state);
+    }
+
+    function onicegatheringstatechange(state) {
+        console.info('ice gathering state change:', state);
+    }
+
+    self.pc1.onsignalingstatechange = onsignalingstatechange;
+    self.pc1.oniceconnectionstatechange = oniceconnectionstatechange;
+    self.pc1.onicegatheringstatechange = onicegatheringstatechange;
+    self.pc1.ondatachannel = function (e) {
+      //var fileReceiver2 = new FileReceiver();
+      self.dc1= e.channel || e; // Chrome sends event, FF sends raw channel
+      self.dataChannelSetup(self.dc1);
+    }
+  }
+  self.makeOffer=function(){
+    if(self.pc1==undefined){
+      self.newConnection();
+    }
+    if(self.dc1==undefined){
+      self.makeDataChannel();
+    }
+    self.pc1.createOffer(function (desc) {
+    self.pc1.setLocalDescription(desc, function () {});
+      console.log("created local offer", desc);
+    }, function () {console.warn("Couldn't create offer");});
+    return icePromise;
+  }
+  self.onCandidate=function (e) {
+      console.log("ICE candidate (pc1)", e);
+      $(document).trigger("iceCandidate",e.candidate)
+      if (e.candidate == null) {
+          //$?$(document).trigger("icedesc",JSON.stringify(self.pc1.localDescription)):1;
+          console.log("local offer ",JSON.stringify(self.pc1.localDescription));
+        //  icePromise.resolve(self.pc1.localDescription);
+      }else{
+      //    icePromise.reject(new Error("no kandidat"));
+      }
+  }
+  self.handlePeer = function(answer){
+    debugger;
+    if(self.pc1==undefined){
+      self.newConnection();
+    }
+    var parsed=(typeof(answer) === "string")?JSON.parse(answer):answer;
+    console.log("parsed",parsed);
+    if(parsed.type==="offer"){
+      self.answerFromOffer(parsed);
+    }else if(parsed.type==="answer"){
+      self.onAnswerFromPeer(parsed);
+    }else{
+      console.log("peer sent invalid request");
+    }
+    return icePromise;
+  }
+  self.onAnswerFromPeer=function(answer){
+    var answerDesc=
+     (typeof(answer) === "string")?
+      new RTCSessionDescription(JSON.parse(answer)):new RTCSessionDescription(answer);
+    console.log("Received remote answer: ", answerDesc);
+    self.pc1.setRemoteDescription(answerDesc);
+  }
+
+  self.answerFromOffer=function(offer){
+    var sdesc=
+     (typeof(offer) === "string")?
+      new RTCSessionDescription(JSON.parse(offer)):new RTCSessionDescription(offer);
+
+    self.pc1.setRemoteDescription(sdesc);
+    self.pc1.createAnswer(function (answerDesc) {
+        console.log("Created local answer: ", answerDesc);
+        self.pc1.setLocalDescription(answerDesc);
+    }, function () { console.warn("No create answer"); });
+
+  }
+  self.sendAnswer=function(){
+    var answerDesc = new RTCSessionDescription(JSON.parse(answer));
+    handleAnswerFromPC2(answerDesc);
+  }
+  self.onOpen=function(){
+    console.log("Datachannel connected");
+  }
+  self.onMessage=function(message){
+
+  }
+}
+
+
 function peerExchange(id){
 
   var self=this;
   this.requestPeers=function(message){
-    console.log(id);
+    console.log("%s requested peers");
     i("network"+id+".sendto")(i("network"+id+".networks")().main,
                               {subsystem:"peerExchangeSubsystemMessage",type:"requestPeers"});
   }
   this.sendPeers=function(message){
+
+    console.log("%s sent out his peers   %s",id,[1,2]);
     i("network"+id+".sendto")(i("network"+id+".networks")().main,
-                              {subsystem:"peerExchangeSubsystemMessage",type:"requestPeers"});
+                              {subsystem:"peerExchangeSubsystemMessage",type:"peerList",data:[1,2]});
     debugger;
   }  
   this.receivePeers=function(message){
-    
+    console.log("%s received peers %s",id,message);
+    i("network"+id+".networks")().main.push(message.message.data);
     debugger;
   }
 
   this.handleCyber=function(message){
+    console.log("%s peerexchange sybsystem recieved %s",id ,JSON.stringify(message));
     debugger;
     if(message.message.subsystem==="peerExchangeSubsystemMessage"){
       switch (message.message.type) {
@@ -38,14 +183,15 @@ function peerExchange(id){
       }
     }
   }
+  $(document).on("cyber_under_the_hood",function(ev,message){
+    i("peerExchange"+id+".handleCyber")(message);
+  });
   setTimeout(function(){
     self.requestPeers();
   },10000);
 }
 
-$(document).on("cyber_under_the_hood",function(message){
-    i("peerExchange"+id+".handleCyber")(message);
-});
+
 
 //this is network module it supports multiple networks of peers
 function net(peers,id){
@@ -89,10 +235,19 @@ function net(peers,id){
     if(whatnet["length"]>0){
       for (index = 0; index < whatnet.length; ++index) {
         console.log(whatnet[index].getIP()+" -> "+message);
-        whatnet[index].send(encode({src:id,dst:whatnet[index].peer,ttl:15},message));
+        if (message.header && message.header.ttl){
+          whatnet[index].send(message);
+        }else{
+          whatnet[index].send(encode({src:id,dst:whatnet[index].peer,ttl:15},message));
+        }
+        
       }
     }else if (whatnet["length"]==undefined){
-      whatnet.send(encode({src:id,dst:whatnet.peer,ttl:15},message));
+      if (message.header.ttl){
+          whatnet.send(message);
+        }else{
+          whatnet.send(encode({src:id,dst:whatnet.peer,ttl:15},message));
+        }
     }
   }
   //you can send message to a network upstream or downstream depending on dht routing function
@@ -132,10 +287,11 @@ function net(peers,id){
      
      
      $(document).trigger("cyber_verbose",{source:peer,message:message});
-     if(message.header.subsystem){
+     if(message.header && message.message.subsystem){
        $(document).trigger("cyber_under_the_hood",message);
-     }
+     }else{
      $(document).trigger("cyber",message);
+     }
      
   }
   //react when this network sends something and you see what is sent and who sent it
@@ -294,7 +450,7 @@ function pirJS(id){
      i(networkid,new net([],id)); 
      //expose dht over interfacex
      i("dht"+id,new dht(id));
-     i("peerExchange",new peerExchange(id)); 
+     i("peerExchange"+id,new peerExchange(id)); 
      i("myidentities"+id,new identityBase(id,peer));
      
   }
