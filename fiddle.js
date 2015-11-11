@@ -267,49 +267,69 @@ function peerExchange(id){
 
 //this is network module it supports multiple networks of peers
 function net(peers,id){
+  //this function connects header and message
   function encode(header,m){
     return {header:header,message:m};
   }
+  //peers that we are conneced to
   this.members=peers;
+  //object instance
   var self=this;
+  //there can be multiple logical networks
+  //network main is the default that contains them all
   this.networks={"main":[]};
+  //this is the instance id of this javascript object 
+  //we want that because then we can test easily
+  //we can make a test that has 2 networks with different ids and simulate communication
   var networkid="network"+id;
+
   //you can add a peer to a network with this function
   this.add=function(whatnet,peer){
-
+    //this gets ip from webrtc internal object
     peer.getIP=function(){
      return peer.peerConnection.remoteDescription.sdp.split(" ")[12].split('\n')[0];
     }
     console.log(id+" added "+peer.peer+"@"+peer.getIP() + " to network "+ whatnet );
     var network = 1;
+    //if network exists get that 
     if (self.networks[whatnet]){
         network=self.networks[whatnet];
     }else{
+     //if not create network
         network = self.networks[whatnet]=[]
     }
+    //put peer into network
     network.push(peer);
     
     // Receive messages
     peer.on('data', function(data) {
+      //if we received message call onMessage function for this javascript network object 
       i(networkid+".onMessage")(peer,data)
     });
     console.log(self.members);    
+    // add this new peer to distributed hash table
     i("dht"+id+".onNewPeer")(peer);
   }
   //you can broadcast to a network with this here you pass network name and message
   this.broadcast=function(whatnet,message){
+    //for each peer in network send message
     for (index = 0; index < self.networks[whatnet].length; ++index) {
       self.networks[whatnet].send(message);
     }
   }
   //you can send to array of peers(array of peerJS connection objects) a message
   this.sendto=function(whatnet,message){
+    //if we are sending to array of peers
     if(whatnet["length"]>0){
+      //send it to everybody
       for (index = 0; index < whatnet.length; ++index) {
         console.log(whatnet[index].getIP()+" -> "+message);
+        //if message we are sending has header(which means we are routing someone else's message')
         if (message.header && message.header.ttl){
+          //just send it
           whatnet[index].send(message);
         }else{
+          //otherwise this message is comming from us then make header
           whatnet[index].send(encode({src:id,dst:whatnet[index].peer,ttl:15},message));
         }
         
@@ -324,17 +344,30 @@ function net(peers,id){
   }
   //you can send message to a network upstream or downstream depending on dht routing function
   /*
+  this is higher level function that gives you more options to send messages
   in short routing function says this peer is right or left from that peer(simple > comparison on peer id)
   */
   this.sends=function(whatnet,direction,message){
     console.log("network " + whatnet + " is being sent "+message+ " "+ direction);
+    //we can specify that we want to send to all peers in this network
     if(direction=="all"){
       self.broadcast(whatnet,message);
     }else if(direction=="upstream"){
+      //we can send to upstream peers in this network
+      //first function in dht object is called that gets us all the peers that are upstream from 
+      //the place where we are in this network and then we send the message to all of the peers
       self.sendto(i("dht"+id+".findUpstreamPeers")(whatnet),message);
     }else if(direction=="downstream"){
+      //we can send to downstream peers in this network
       self.sendto(i("dht"+id+".findDownstreamPeers")(whatnet),message);
     }else{
+      //if we are not sending to all and we are not sending upstream or downstream
+      //we can send to specific address in dht
+      //for example there can be a computer somewhere with id 123456
+      //that is not connected directly to us
+      //but we might know somebody that knows somebody
+      //so what we do we first check if that guy commes upstream or downstream
+      //if it is downstream just send this message to all of the downstream guys
       if(i("dht"+id+".compareAddresses")(id,direction)){
         self.sendto(i("dht"+id+".findUpstreamPeers")("main"),message);
       }else{
@@ -345,7 +378,11 @@ function net(peers,id){
   }
   //if message should be routed pass it down the network
   this.route=function(message){
+    //so we need to find out what is the guy in our dht that comes closest to the one we want to send to
+    //and we send to it
     self.sendto(i("dht"+id+".nextHopToPeer")(message.header.dst),message);
+    //we also check if the guy we want to send to is upstream
+    //we just send to all upstream people
     if(i("dht"+id+".compareAddresses")(message.header.dst,id)){
       self.sendto(i("dht"+id+".findUpstreamPeers")("main"),message);
     }else{
@@ -355,19 +392,26 @@ function net(peers,id){
     //self.sends("main",message.message.header.dst,message);
   }
   //if it's for us do stuff
+  //message that just arrived is addressed for us so we do something with it
   this.process=function(peer,message){
      
-     
+     //we emit event that has most info 
+     //from which peer did the message came
+     //and the message
      $(document).trigger("cyber_verbose",{source:peer,message:message});
+     //if message is meant to be for some utility like the code responsible for peer exchange
+     //then we emit special message(this is for convenience so that we do not check manually)
      if(message.header && message.message.subsystem){
        $(document).trigger("cyber_under_the_hood",message);
      }else{
-     $(document).trigger("cyber",message);
+       // if it is not utility message we just emit it for what ever code that needs it
+       $(document).trigger("cyber",message);
      }
      
   }
   //react when this network sends something and you see what is sent and who sent it
   this.onMessage=function(peer,message){
+    
     if(message.header.ttl>1){
       message.header.ttl-=1;
       if(message.header.dst!=id){
