@@ -16,6 +16,11 @@ most probably
 misinterpreted. Just try to imagine someone similair to him now dying from a hand of some old man 
 monitoring his internet. Who is going to know about it who is going to care?
 Technology can save lives. Your kids can be next.
+Most probably you hear in the news that there are pedophiles out there and terrorists.
+Fear mongering by spin masters. Pedophiles get so low sentences that it looks like they
+are being let loose for puprose of spin masters having something to say to politicians.
+And terrorists are being financed trained and commanded by those who spread those fears.
+Do Russains spread that stuff? They simply send terrorists to hell. Rock not talk.
 
 I tweeted that Latin Herecy(colloquially known as "catholic church") is religion of genocide
 and that they celebrate war criminal as their saint. My tweet got deleted.
