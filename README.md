@@ -1,10 +1,26 @@
 # Buyan - CensorshipFreeCommentingPlatform
-Imagine a world without facebook google gmail etc.
-Where all those services will be replaced by webrtc p2p equivalents webtorrent style.
+In todays world there is handful of evil entities violating human rights
+facebook google and all of those are enabling Nazi style survailance(that was used agains Jews).
+80 years ago IBM was run by Nazis that provided mass survailance technology to Hitler and he used 
+it for holocaust. Today Google Facebook are subtly doing the same thing and are enabling
+all kinds of malicious entities to monitor your education.
+What if US gets next Hitler or UK? What if they sell it to one of their rouge allies?
+Or to some malicious third party? For money people will sell their loved ones sometimes.
+And who are you to google and facebook? Anglosacson stazi is rampant eating away it's victims.
+That is why it is in everyones interest to decentralize the web. So your kids can maintain
+right to be educated without evil monitoring them for it's malicious goals.
+
+I tweeted that Latin Herecy(colloquially known as "catholic church") is religion of genocide
+and that they celebrate war criminal as their saint. My tweet got deleted.
+That is what drove me to make p2p twitter analog and latter that came to be cyber buyan.
+p2p can remove email(decentralized email) search, cloud(imagine people selling their cpu time)
+facebook(p2p blogs),twitter, and it can even have blockchain that uses something usefull for
+proof of work like protein folding.
+
 Buyan or maybe better to say CyberBuyan is aiming for a slice in this space. :-D
-it is written in buyanFramework clojurescript framework that came out from this project and interface is going to be in emberjs.
+it is written in javascript
 most probably going to be hosted directly on github pages
-https://github.com/NikolaMandic/Buyan 
+
 this is attempt at making that dream come true.
 and if you need distributed consensus there is blockchain etc.
 
@@ -20,26 +36,8 @@ warning!!! software in early stage
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/NikolaMandic/Buyan?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)               demo here: http://nikolamandic.github.io/Buyan/        
             
 # background
-project started after comments censored my tweet regarding Nazi( Stepinac) that is celebrated as a saint by latin heretic cartel in which I reflected on reports of his hands being red from orthodox blood that he literally killed with a knife with his own two hands. Blog post introducing motivation behind Buyan http://nikolamandic.me/?p=69
-so just like there was Armenian genocide there was genocide in balkans
-in wwII against Jews,Roma and Serbs organized by organization people
-refer to as "Catholic church".
-Here is one of concentration camps where it happened https://en.wikipedia.org/wiki/Jasenovac_concentration_camp        
-I've provided that link since many people will most probably not believe that it happened.
-Like you have holocaust deniers and people who change history that is how there are people who do not believe this is true.
-Latin heretic cartel colloquially known as "Catholic church" is one of the major history falsifiers in entire worlds history. 
-What latin heretics do not like is that this thing happened under their blessings and that they celebrate the guy who was among organisers as a saint
-"Catholic church" organized this holocaust. From their monastaries those criminals emerged they were told by catholic priests go kill Serbs then come to church to be purified.
-They were in it the whole way forcing locals into becoming "catholic" or face death. And the guy who was in charge of it all is now a saint in their book. 
-"At that time fresh women and children arrived daily at the Camp in Stara Gradiška. About fourteen days later, Vrban [the Commandant of the Camp] ordered all children to be separated from their mothers and put into one room. Ten of us were told to carry them there in blankets. The children crawled about the room, and one child put an arm and leg through the doorway, so that the door could not be closed. Vrban shouted: 'Push it!' When I did not do that, he banged the door and crushed the child's leg. Then he took the child by its whole-leg, and banged it on the wall until it was dead. After that we continued carrying the children in. When the room was full, Vrban brought poison gas and killed them all."[127]
-You have to be avare that this Jasenovac place is only one concentration camp. There were more and equally important they went from village to village town to town and killed people that is besides camps.
-
-Millions of Serbs lost their lives and a lot of families lost their loved ones. Communists suppressed history for Yugoslavia's unity but since a lot of people
-lost their family it was left in nations memory. In my country that is
-common knowledge. Voices of those people never meant much to the world just
-like Armenian voices. I dedicate this lame project of mine project to their memory hopping that their mention will be grain of salt in this not worthy
-bundle of stuff.
-DAMNED BE THE POPE latin heretic capitain!
+my tweets about church of genocide were deleted(http://nikolamandic.me/?page_id=240) 
+so I started this project
 
 
 
@@ -58,5 +56,5 @@ with subtitles here https://www.youtube.com/watch?v=b3TQevs14CE
 
 <br/>
 
-Copyright (c) 2014 Nikola Mandic
+Copyright (c) 2015 Nikola Mandic
 
