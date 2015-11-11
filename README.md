@@ -11,7 +11,11 @@ That is why it is in everyones interest to decentralize the web. So your kids ca
 right to be educated without evil monitoring them for it's malicious goals.
 Just imagine how many people die all the time because in some small third world countries
 people browse internet and some evil entity monitors them and then deems them unfit for their
-goals. 
+goals. I've heard of student that went to "gulag" for saying something their most probably envious professor 
+most probably
+misinterpreted. Just try to imagine someone similair to him now dying from a hand of some old man 
+monitoring his internet. Who is going to know about it who is going to care?
+Technology can save lives. Your kids can be next.
 
 I tweeted that Latin Herecy(colloquially known as "catholic church") is religion of genocide
 and that they celebrate war criminal as their saint. My tweet got deleted.
