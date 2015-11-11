@@ -9,6 +9,9 @@ Or to some malicious third party? For money people will sell their loved ones so
 And who are you to google and facebook? Anglosacson stazi is rampant eating away it's victims.
 That is why it is in everyones interest to decentralize the web. So your kids can maintain
 right to be educated without evil monitoring them for it's malicious goals.
+Just imagine how many people die all the time because in some small third world countries
+people browse internet and some evil entity monitors them and then deems then unfit for their
+goals.
 
 I tweeted that Latin Herecy(colloquially known as "catholic church") is religion of genocide
 and that they celebrate war criminal as their saint. My tweet got deleted.
