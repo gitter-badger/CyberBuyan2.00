@@ -411,7 +411,7 @@ function net(peers,id){
   }
   //react when this network sends something and you see what is sent and who sent it
   this.onMessage=function(peer,message){
-    
+
     if(message.header.ttl>1){
       message.header.ttl-=1;
       if(message.header.dst!=id){
@@ -446,24 +446,35 @@ function dht(id){
    //it is string difference
    //if string is one big number substract the values
    this.compareAddressesDiff=function(p1,p2){
-     return _.chain(p1)
-             .map(function(v){ return v.charCodeAt(0);})
-             .zip(_.chain(p2)
-                   .map(function(v){ 
-                   return v.charCodeAt(0);})
-                   .value())
+     return _.chain(p1) //grab first address
+             .map(function(v){ return v.charCodeAt(0);}) //convert characters to charcodes
+             .zip(_.chain(p2)//grab second address
+                   .map(function(v){ return v.charCodeAt(0);}) //convert characters to charcodes
+                   .value())// join charcodes from two adresses in pairs(first with first)
+              //calcualte difference between each pair if there is no character then take 0
+              //consider that each pair has it's weight in decimal system
              .map(function(v,i,a){return ((v[1]?v[1]:0)-(v[0]?v[0]:0))*Math.pow(10,a.length-1-i);})
+             //now in previous step we treated numbers as one big decimal digit
+             //now we add those digits up
              .reduce(function(a,b){return a+b;})
+             //and we get difference
              .value();
+             /*
+             this is how it works
+                asd - bca = [1,2,3] - [3,2,1] = [[1-3],[2-2],[3-1]]=[-2*100,0*10,2*1]
+
+             */
    }
    
    //find all peers that are right
    this.findUpstreamPeers=function(networkname,p){
     var downstream=[];
+    //get all peers from the network we want to query
     var network=i("network"+id+".networks")().main;
     console.log("network of " + id + " is ",network );
+    //get my id
     var peer = p || i("myidentities"+id+".identities")()[id];
-    
+    //for each peer check if it is upstream and if it is push it to array
     for (index = 0; index < network.length; ++index) {
       if(!self.compareAddresses(network[index].peer,peer.peer)){
         downstream.push(network[index]);
@@ -477,9 +488,11 @@ function dht(id){
         console.log(self.getPeerAddress(downstream[index]));
      
     }
+    //return that array
     return downstream;
    }
    //minimize distance function to find the peer closest to the destination peer
+   //closest is the one that has minimal distance in dht
    this.nextHopToPeer = function(p){
      var network=i("network"+id+".networks")().main;
      var peer = p || i("myidentities"+id+".identities")()[id];
