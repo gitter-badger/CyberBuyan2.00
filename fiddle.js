@@ -34,7 +34,7 @@ function K(){
       con = { 'optional': [{'DtlsSrtpKeyAgreement': true}] };
       /*
   var icePromise = new Promise(function(resolve,reject){
-    debugger;
+    
     $(document).on("iceCandidate",function(x){
       if(x){
         resolve(JSON.stringify(self.pc1.localDescription));
@@ -109,7 +109,7 @@ function K(){
       console.log("created local offer", desc);
     }, function () {console.warn("Couldn't create offer");});
     return  new Promise(function(resolve,reject){
-    debugger;
+    
     $(document).on("iceCandidate",function(x){
       if(x){
         resolve(JSON.stringify(self.pc1.localDescription));
@@ -134,7 +134,7 @@ function K(){
       }
   }
   self.handlePeer = function(answer){
-    debugger;
+    
     if(self.pc1==undefined){
       self.newConnection();
     }
@@ -143,7 +143,7 @@ function K(){
     if(parsed.type==="offer"){
       self.answerFromOffer(parsed);
       var pr= new Promise(function(resolve,reject){
-        debugger;
+        
         $(document).on("iceCandidate",function(x){
           if(x){
             resolve(JSON.stringify(self.pc1.localDescription));
@@ -210,13 +210,13 @@ function peerExchange(id){
     i("network"+id+".sendto")(i("network"+id+".networks")().main,
                               {subsystem:"peerExchangeSubsystemMessage",type:"peerList",data:offer});
     });
-    debugger;
+    
   }  
   //recieved offer from somebody and now I am gonna handle it
   this.receivePeer=function(message){
     console.log("%s received peers %s",id,message);
     i("network"+id+".networks")().offers.push(message.message.data);
-    debugger;
+    
   }
   //make request so that somebody sends us bunch of offers 
   this.requestPeers=function(message){
@@ -230,18 +230,18 @@ function peerExchange(id){
     console.log("%s sent out his peers   %s",id,[1,2]);
     i("network"+id+".sendto")(i("network"+id+".networks")().main,
                               {subsystem:"peerExchangeSubsystemMessage",type:"peerList",data:[1,2]});
-    debugger;
+    
   }  
   //handle bunch of offers we got
   this.receivePeers=function(message){
     console.log("%s received peers %s",id,message);
     i("network"+id+".networks")().offers.push(message.message.data);
-    debugger;
+    
   }
   //all messages  recieved go trough here sort them out 
   this.handleCyber=function(message){
     console.log("%s peerexchange sybsystem recieved %s",id ,JSON.stringify(message));
-    debugger;
+    
     if(message.message.subsystem==="peerExchangeSubsystemMessage"){
       switch (message.message.type) {
         case "requestPeers":
@@ -597,6 +597,12 @@ function pirJS(id){
 }
 //tests 
 function testb(){
+    describe("A suite", function() {
+      it("contains spec with an expectation", function() {
+        expect(true).toBe(true);
+      });
+    });
+/*
     var d=Date.now();
     var p01 =new pirJS("01_"+d);
     var p02 =new pirJS("02_"+d);
@@ -650,11 +656,11 @@ function testb(){
     
     console.log("//////dht test sending to peer that is downstream end/////////");
   }
-
+*/
 }
-
+/*
 (new testb()).test1();
-
+*/
 
   // Send messages
   //conn.send('Hello!');
