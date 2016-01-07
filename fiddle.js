@@ -431,7 +431,7 @@ function messagePipeline(id){
 /*
 this module gets peer id and has function that distinguishes whether one peer is left or right from the other
 */
-function dht(id){
+function DHT(id){
    var self=this;
    self.id=id;
    self.dhtables={};
@@ -575,12 +575,12 @@ function pirJS(id){
        return "ip";
      }
      console.log(peer);
-     peer.on('open', this.onOpen);
+     peer.on('open', self.onOpen);
      peer.on('connection', self.onConnection);
      //expose network over interfacex
      i(networkid,new net([],id)); 
      //expose dht over interfacex
-     i("dht"+id,new dht(id));
+     i("dht"+id,new DHT(id));
      i("peerExchange"+id,new peerExchange(id)); 
      i("myidentities"+id,new identityBase(id,peer));
      
@@ -600,16 +600,44 @@ function pirJS(id){
 //tests 
 function testb(){
     describe("peer initialization", function() {
-      it("should properly initialize the peer", function() {
-        var netcall = sinon.spy(window, 'net');
+      it("should properly initialize the peer by calling all the subsystems", function() {
+        var net = sinon.spy(window, 'net');
+        var dht = sinon.spy(window, 'dht');
+        var peerExchange = sinon.spy(window, 'peerExchange');
+        var myidentities = sinon.spy(window, 'identityBase');
 
         var d=Date.now();
         var p01 =new pirJS("01_"+d);
         p01.init();
-        expect(netcall.called).toBe(true);
+        var x = sinon.stub(p01,'onOpen');
+
+        expect(net.called).toBe(true);
+        expect(dht.called).toBe(true);
+        expect(peerExchange.called).toBe(true);
+        expect(myidentities.called).toBe(true);
+
+
       });
     });
+    describe("dht test", function() {
+      var id = 0;
+      var dht = 0;
 
+      beforeEach(function() {
+        dht=new DHT(id);
+      });
+
+      afterEach(function() {
+        delete dht;
+      });
+      it("dht should initialize properly", function() {
+        
+        
+        //sinon.stub(dht,'');
+        i("dht"+id,dht);
+
+      });
+    });
 /*
     var d=Date.now();
     var p01 =new pirJS("01_"+d);
