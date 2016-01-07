@@ -553,6 +553,15 @@ function pirJS(id){
    var networkid="network"+id;
    this.peer;
    var self=this;
+   this.onOpen = function onOpen(id){
+       console.log('My peer ID is: ' + id);
+      //i("network.add")("main",peer);
+   }
+   this.onConnection = function onConnection(conn){
+       //when someone connects add it to netwrok
+       console.log(id + " connection opened from " + conn.peer);
+       i(networkid+".add")("main",conn);
+   }
    this.init=function(){
     var connParams = {
      "host": "localhost",
@@ -566,15 +575,8 @@ function pirJS(id){
        return "ip";
      }
      console.log(peer);
-     peer.on('open', function(id) {
-       console.log('My peer ID is: ' + id);
-      //i("network.add")("main",peer);
-     });
-     peer.on('connection', function(conn) {
-       //when someone connects add it to netwrok
-       console.log(id + " connection opened from " + conn.peer);
-       i(networkid+".add")("main",conn);
-     });
+     peer.on('open', this.onOpen);
+     peer.on('connection', self.onConnection);
      //expose network over interfacex
      i(networkid,new net([],id)); 
      //expose dht over interfacex
@@ -597,11 +599,17 @@ function pirJS(id){
 }
 //tests 
 function testb(){
-    describe("A suite", function() {
-      it("contains spec with an expectation", function() {
-        expect(true).toBe(true);
+    describe("peer initialization", function() {
+      it("should properly initialize the peer", function() {
+        var netcall = sinon.spy(window, 'net');
+
+        var d=Date.now();
+        var p01 =new pirJS("01_"+d);
+        p01.init();
+        expect(netcall.called).toBe(true);
       });
     });
+
 /*
     var d=Date.now();
     var p01 =new pirJS("01_"+d);
@@ -658,9 +666,9 @@ function testb(){
   }
 */
 }
-/*
-(new testb()).test1();
-*/
+
+testb();
+
 
   // Send messages
   //conn.send('Hello!');
