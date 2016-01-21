@@ -1,4 +1,6 @@
 # Buyan - CensorshipFreeCommentingPlatform
+
+[![Join the chat at https://gitter.im/NikolaMandic/CyberBuyan2.00](https://badges.gitter.im/NikolaMandic/CyberBuyan2.00.svg)](https://gitter.im/NikolaMandic/CyberBuyan2.00?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 In todays world there is handful of evil entities violating human rights
 facebook google and all of those are enabling Nazi style survailance(that was used agains Jews).
 80 years ago IBM was run by Nazis that provided mass survailance technology to Hitler and he used 
